@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your Bingo Board</title>
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="board-header">
+      <h1>Your Bingo Board</h1>
+      <div>
+        <span id="welcome"></span>
+        <button id="signoutBtn" class="btn small">Sign out</button>
+        <a href="/winners.html" class="btn small">Winners</a>
+      </div>
+    </header>
+
+    <section id="boardContainer">
+      <div id="board" class="board"></div>
+    </section>
+
+    <div id="bingoModal" class="modal hidden" role="dialog" aria-hidden="true">
+      <div class="modal-content">
+        <h3>Bingo!</h3>
+        <p>You completed a row. Click submit to add to winners.</p>
+        <div class="row">
+          <button id="bingoSubmit" class="btn primary">Submit</button>
+          <button id="bingoCancel" class="btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="urlModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Edit link</h3>
+        <label>
+          URL
+          <input id="urlInput" type="url" placeholder="https://example.com" />
+        </label>
+        <div class="row">
+          <button id="urlSave" class="btn primary">Submit</button>
+          <button id="urlClear" class="btn">Clear</button>
+          <button id="urlCancel" class="btn">Cancel</button>
+        </div>
+        <div id="urlError" class="msg error hidden"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/board.js"></script>
+</body>
+</html>
