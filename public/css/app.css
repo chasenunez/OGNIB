@@ -30,9 +30,47 @@ h1{margin:0 0 12px;font-size:1.6rem}
   max-width:80%;
   height:auto;
 }
-.btn{display:inline-block;padding:10px 14px;background:transparent;border:1px solid #cfd8e3;border-radius:8px;text-decoration:none;color:#111;cursor:pointer}
+/*.btn{display:inline-block;padding:10px 14px;background:transparent;border:1px solid #cfd8e3;border-radius:8px;text-decoration:none;color:#111;cursor:pointer}
 .btn.small{padding:6px 8px;font-size:0.9rem}
-.btn.primary{background:var(--accent);color:#fff;border:none}
+.btn.primary{background:var(--accent);color:#fff;border:none}*/
+
+.btn{
+  display:inline-block;
+  padding:10px 14px;
+  background:transparent;
+  border:1px solid #cfd8e3;
+  border-radius:8px;
+  text-decoration:none;
+  text-align: center;
+  color:#111;
+  cursor:pointer;
+}
+
+/* small screens */
+@media (max-width: 500px) {
+  .btn{
+    display:block;
+    width:90%;
+    margin:0 auto; /* center the button */
+    text-align: center;
+  }
+}
+
+.btn.small{
+  padding:6px 8px;
+  font-size:0.9rem;
+  text-align: center;
+}
+
+.btn.primary{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  text-align: center;
+}
+
+
+
 .row{display:flex;gap:8px;align-items:center}
 .form label{display:block;margin-bottom:12px}
 .form input{width:100%;padding:8px;border-radius:6px;border:1px solid #cbd5e1}
