@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Your Bingo Board</title>
+  <title>Your RDM Bingo Board</title>
   <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
   <main class="container">
     <header class="board-header">
-      <h1>Your Bingo Board</h1>
+      <img src="/assets/RDMBINGOLONG.png" alt="RDM Bingo!" height = 75>
       <div>
         <span id="welcome"></span>
         <button id="signoutBtn" class="btn small">Sign out</button>
@@ -23,8 +23,8 @@
 
     <div id="bingoModal" class="modal hidden" role="dialog" aria-hidden="true">
       <div class="modal-content">
-        <h3>Bingo!</h3>
-        <p>You completed a row. Click submit to add to winners.</p>
+        <h1>Bingo!</h1>
+        <p>You completed a row. Click submit to add to winners, or cick cancel to keep playing.</p>
         <div class="row">
           <button id="bingoSubmit" class="btn primary">Submit</button>
           <button id="bingoCancel" class="btn">Cancel</button>
