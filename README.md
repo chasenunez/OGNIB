@@ -2,16 +2,16 @@
 ![RDMBingoHeader](public/assets/RDMBingo.png)
 
 
-This is a small, lightweight web application originally created as an outreach and engagement tool for researchers. It helps teams and trainees demonstrate and celebrate good data practices (e.g., "Write a README", "Publish your data in a repository") in an interactive bingo format. The app is intentionally general-purpose and can also be used for workshops, onboarding, community events, or any setting where people want to mark and link evidence of completed tasks.
+This MMO Bingo web application was created as an outreach and engagement tool for researchers. It provides an online way for teams and trainees to demonstrate and celebrate good data practices (e.g., "Write a README", "Publish your data in a repository") in an interactive bingo format. The app is pretty general-purpose though, so the same nuts and bolts can be used for workshops, onboarding, community events, or any setting where people want to mark and link evidence of completed tasks.
 
 ![RDMBingoHeader](public/assets/overview.png)
 
-This repository contains the full app (Node + Express backend + static frontend). All user data (accounts, boards, winners) are stored in a single AES-GCM–encrypted JSON file on the host. Passwords are hashed with `bcrypt`. This design keeps the code small, auditable, and appropriate for small-scale deployments such as workshops, departmental demos, or research-group use.
+This repository contains the full app (Node + Express backend + static frontend). All user data (accounts, boards, winners) are stored in a single AES-GCM–encrypted JSON file on the host. Passwords are hashed with `bcrypt`. This causes some minor hurdles for local setup (see below), but is generally appropriate for small-scale deployments ( like workshops, departmental demos, or research-group use), but larger deployment will require some rethininking to scale the log-in credential storage. 
 
-* Each completed bingo entry can be linked to live evidence (a DOI, repository record, README file, pull request, or project page).
-* Winners are recorded (one winner entry per account) and presented with a thumbnail of their board so evidence is discoverable.
+* Each completed bingo entry can be linked to live evidence (a DOI, repository record, README file, pull request, or project page). That way the wins can be audited by whoever needs to do that, and also serves as a cool way for folks to share their accomplishments. 
+* Winners are recorded (one winner entry per account) and presented with a thumbnail of their board so evidence is discoverable. Also the links for the completed squares remain usable. 
 * Minimal infrastructure and clear encryption: the data file is encrypted at rest using a server-side `SECRET_KEY`. This makes the app safe enough for outreach use without a full database stack.
-* Easy to adapt: change phrases, board size, UI styling, or swap the file store for a database.
+* It is coded up so that changes to the phrases, board size, UI styling, etc. is prety easy to change.
 
 # Contents
 
@@ -38,13 +38,15 @@ This repository contains the full app (Node + Express backend + static frontend)
    npm install
    ```
 
-2. Generate a strong `SECRET_KEY` (must be at least 32 characters). Recommended examples:
+2. Generate a strong `SECRET_KEY` (must be at least 32 characters). You can do this a couple of different ways:
 
    * Node:
 
      ```bash
      node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
      ```
+Or if you prefer:
+
    * OpenSSL:
 
      ```bash
