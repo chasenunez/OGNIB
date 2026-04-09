@@ -77,4 +77,4 @@ Or if you prefer:
 
 # License
 
-This project is provided under the Apache License. See `LICENSE` (or add one) for details.
+This project is provided under the Apache License. See `LICENSE` for details.
