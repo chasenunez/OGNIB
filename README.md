@@ -18,6 +18,7 @@ This repository contains the full app (Node + Express backend + static frontend)
 * `server.js` — Express server and API endpoints
 * `lib/store.js` — small encrypted file-backed store (AES-256-GCM)
 * `public/` — static frontend (HTML/CSS/JS)
+* `public/help.html` — Help page with rules and resource links for each task
 * `data/` — (ignored) where `store.json.enc` is created by the app unless you set a custom path
 * `scripts/` — optional maintenance scripts (e.g., dedupe winners)
 * `package.json` — Node deps and start script
@@ -74,6 +75,47 @@ Or if you prefer:
    ```
 
 4. Open the app at [http://localhost:3000](http://localhost:3000). The first run will create `data/store.json.enc` encrypted with your `SECRET_KEY`.
+
+# Security for server deployment
+
+When deploying this application on a server accessible via the internet, follow these steps to harden security:
+
+## Required environment variables
+
+Set **both** of these as environment variables on your server. **Never** hard-code them in source code or commit them to version control.
+
+| Variable | Purpose | How to generate |
+|---|---|---|
+| `SECRET_KEY` | Encrypts the data file at rest (AES-256-GCM) | `openssl rand -hex 48` |
+| `SESSION_SECRET` | Signs session cookies so they can't be tampered with | `openssl rand -hex 48` |
+
+If `SESSION_SECRET` is not set, the server will generate a random one at startup. This means **all user sessions will be invalidated every time the server restarts**. For production, always set it explicitly.
+
+## Deployment checklist
+
+1. **Use HTTPS.** Place the app behind a reverse proxy (e.g., Nginx, Caddy, or a cloud load balancer) that terminates TLS. Session cookies are `httpOnly` but not marked `secure` by default — with HTTPS in front this is handled at the proxy layer.
+
+2. **Set environment variables securely.** Use your hosting platform's secrets manager (e.g., Render environment variables, Docker secrets, systemd `EnvironmentFile`, etc.). Never pass secrets as command-line arguments — they are visible in process listings.
+
+   Example with a `.env` file (keep `.env` in `.gitignore`):
+   ```bash
+   SECRET_KEY=your-64-char-hex-string-here
+   SESSION_SECRET=another-64-char-hex-string-here
+   PORT=3000
+   ```
+
+   Then load with something like [dotenv](https://www.npmjs.com/package/dotenv) or your init system.
+
+3. **Restrict file permissions** on the `data/` directory so only the application's user can read/write the encrypted store:
+   ```bash
+   chmod 700 data/
+   ```
+
+4. **Back up `data/store.json.enc` regularly.** The entire database is a single file — if it's corrupted or lost, all data is gone. A simple cron job can copy it to a safe location.
+
+5. **Consider rate limiting.** The app does not currently include rate limiting. For public-facing deployments, use your reverse proxy or a middleware like [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) to protect against brute-force login attempts.
+
+6. **Firewall and access.** Only expose the port the app listens on (default `3000`) through your reverse proxy. Do not expose it directly to the internet.
 
 # License
 
