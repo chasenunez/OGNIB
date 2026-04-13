@@ -100,14 +100,21 @@ function setupModals() {
   document.getElementById('bingoSubmit').addEventListener('click', async () => {
     try {
       await api('/api/bingo', { method: 'POST', body: JSON.stringify({}) });
-      alert('Win submitted! See winners page.');
-      closeBingoModal();
-      window.location = '/winners.html';
+      // Generate and show the badge instead of redirecting immediately
+      document.getElementById('bingoSubmit').disabled = true;
+      document.getElementById('bingoSubmit').textContent = 'Submitted!';
+      await generateBadge();
     } catch (err) {
       alert('Failed to submit bingo: ' + (err.message || ''));
     }
   });
-  document.getElementById('bingoCancel').addEventListener('click', closeBingoModal);
+  document.getElementById('bingoCancel').addEventListener('click', () => {
+    closeBingoModal();
+    // If already submitted, go to winners page
+    if (document.getElementById('bingoSubmit').disabled) {
+      window.location = '/winners.html';
+    }
+  });
 }
 
 function openUrlModal(index) {
@@ -193,4 +200,121 @@ function hasBingo(bools) {
 async function signout() {
   await api('/api/signout', { method: 'POST' });
   window.location = '/';
+}
+
+// Badge generation: composites social_card.png with the user's bingo board
+async function generateBadge() {
+  const canvas = document.getElementById('badgeCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Load the background image
+  const bg = new Image();
+  bg.crossOrigin = 'anonymous';
+  await new Promise((resolve, reject) => {
+    bg.onload = resolve;
+    bg.onerror = reject;
+    bg.src = '/assets/social_card.png';
+  });
+
+  // Use the image's natural dimensions
+  const W = bg.naturalWidth;
+  const H = bg.naturalHeight;
+  canvas.width = W;
+  canvas.height = H;
+
+  // Draw background
+  ctx.drawImage(bg, 0, 0, W, H);
+
+  // Board layout: centered in the lower 60% with margin from edges
+  const margin = W * 0.075;
+  const lowerTop = H * 0.4;
+  const lowerHeight = H * 0.6;
+  const availW = W - margin * 2;
+  const availH = lowerHeight - margin * 2;
+  const boardSize = Math.min(availW, availH);
+  const gap = Math.round(boardSize * 0.02);
+  const cellSize = (boardSize - gap * 4) / 5;
+  const startX = (W - (cellSize * 5 + gap * 4)) / 2;
+  const startY = lowerTop + (lowerHeight - (cellSize * 5 + gap * 4)) / 2;
+
+  // Colors matching the app theme
+  const linkedColor = 'rgba(143, 204, 153, 0.95)';
+  const linkedBorder = 'rgba(40, 78, 132, 1)';
+  const emptyColor = 'rgba(255, 255, 255, 0.85)';
+  const emptyBorder = 'rgba(200, 210, 225, 1)';
+  const textColor = '#222';
+
+  // Draw each cell
+  state.board.forEach((cell, idx) => {
+    const col = idx % 5;
+    const row = Math.floor(idx / 5);
+    const x = startX + col * (cellSize + gap);
+    const y = startY + row * (cellSize + gap);
+    const r = Math.round(cellSize * 0.08);
+
+    // Filled rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(x, y, cellSize, cellSize, r);
+    ctx.fillStyle = cell.url ? linkedColor : emptyColor;
+    ctx.fill();
+    ctx.strokeStyle = cell.url ? linkedBorder : emptyBorder;
+    ctx.lineWidth = Math.max(1, Math.round(cellSize * 0.02));
+    ctx.stroke();
+
+    // Only draw text for completed (linked) cells
+    if (cell.url) {
+      const maxFontSize = Math.round(cellSize * 0.14);
+      const minFontSize = Math.round(cellSize * 0.08);
+      const padding = cellSize * 0.08;
+      const maxTextWidth = cellSize - padding * 2;
+
+      let fontSize = maxFontSize;
+      ctx.font = `${fontSize}px Inter, system-ui, sans-serif`;
+      const words = cell.phrase.split(' ');
+      let lines = wrapText(ctx, words, maxTextWidth);
+
+      while (lines.length * (fontSize * 1.2) > cellSize - padding * 2 && fontSize > minFontSize) {
+        fontSize--;
+        ctx.font = `${fontSize}px Inter, system-ui, sans-serif`;
+        lines = wrapText(ctx, words, maxTextWidth);
+      }
+
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      const lineHeight = fontSize * 1.2;
+      const totalTextHeight = lines.length * lineHeight;
+      const textStartY = y + (cellSize - totalTextHeight) / 2;
+
+      lines.forEach((line, li) => {
+        ctx.fillText(line, x + cellSize / 2, textStartY + li * lineHeight);
+      });
+    }
+  });
+
+  // Show the badge area and set download link
+  const badgeArea = document.getElementById('badgeArea');
+  badgeArea.classList.remove('hidden');
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const dl = document.getElementById('badgeDownload');
+    dl.href = url;
+  }, 'image/png');
+}
+
+// Helper: wrap words into lines that fit within maxWidth
+function wrapText(ctx, words, maxWidth) {
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const test = current ? current + ' ' + word : word;
+    if (ctx.measureText(test).width <= maxWidth) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
 }

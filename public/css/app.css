@@ -95,6 +95,7 @@ h1{margin:0 0 12px;font-size:1.6rem}
 .cell.linked{background:linear-gradient(90deg, rgba(143, 204, 153), rgba(143, 204, 153));border-color:rgba(40, 78, 132)}
 .cell a{color:inherit;text-decoration:underline}
 .modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);padding:16px}
+.hidden{display:none}
 .modal.hidden{display:none}
 .modal-content{background:#fff;padding:16px;border-radius:12px;max-width:420px;width:100%}
 .winners{display:flex;flex-direction:column;gap:12px}
