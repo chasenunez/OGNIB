@@ -21,13 +21,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Normalize snapshot to 25 cells
       const cells = (w.snapshot || []).slice(0, 25);
-      while (cells.length < 25) cells.push({ phrase: '', url: null });
+      while (cells.length < 25) cells.push({ phrase: '', url: null, description: null });
 
       cells.forEach(cell => {
         const sc = document.createElement('div');
         sc.className = 'small-cell';
 
         const phrase = (cell && cell.phrase) ? cell.phrase : '';
+        const description = (cell && cell.description) ? cell.description : '';
 
         // accessible hidden text for screen readers
         const hidden = document.createElement('span');
@@ -41,12 +42,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           a.href = cell.url;
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
-          a.title = phrase; // native tooltip on hover
+          // Show description as tooltip on hover; fall back to phrase
+          a.title = description || phrase;
           a.setAttribute('aria-label', phrase || 'Linked bingo box');
           a.appendChild(hidden);
           sc.appendChild(a);
         } else {
-          // unlinked: neutral, not clickable, show tooltip on hover
+          // unlinked: neutral, not clickable, show phrase tooltip on hover
           sc.classList.add('unlinked');
           sc.title = phrase;
           sc.setAttribute('aria-label', phrase || 'Unlinked bingo box');

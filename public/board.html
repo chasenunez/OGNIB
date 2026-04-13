@@ -24,7 +24,7 @@
     <div id="bingoModal" class="modal hidden" role="dialog" aria-hidden="true">
       <div class="modal-content">
         <h1>Bingo!</h1>
-        <p>You completed a row. Click submit to add to winners, or cick cancel to keep playing.</p>
+        <p>You completed a row. Click submit to add to winners, or click cancel to keep playing.</p>
         <div class="row">
           <button id="bingoSubmit" class="btn primary">Submit</button>
           <button id="bingoCancel" class="btn">Cancel</button>
@@ -38,6 +38,10 @@
         <label>
           URL
           <input id="urlInput" type="url" placeholder="https://example.com" />
+        </label>
+        <label>
+          Description (minimum 3 words)
+          <textarea id="descInput" rows="3" placeholder="Briefly describe what you did..."></textarea>
         </label>
         <div class="row">
           <button id="urlSave" class="btn primary">Submit</button>

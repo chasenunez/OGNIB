@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Help &amp; Resources - RDM Bingo</title>
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <main class="container">
+    <center><img src="/assets/RDMBINGOLONG.png" alt="RDM Bingo!" height="55"></center><br>
+    <h1>Help &amp; Resources</h1>
+
+    <div class="help-section">
+      <h2>Rules of RDM Bingo</h2>
+      <p>
+        The goal of RDM Bingo is to encourage you to clean up an existing project or start a new
+        project using research data management and software best practices. Here's how it works:
+      </p>
+      <ul>
+        <li>
+          <strong>Get a board:</strong> Sign up to receive your 5&times;5 Bingo board. Each square
+          represents a best-practice task you can complete.
+        </li>
+        <li>
+          <strong>Complete tasks:</strong> Click on a square to submit proof that you've completed
+          the task. Each submission requires:
+          <ul>
+            <li>
+              <strong>A valid URL as proof</strong> &mdash; either a link to a specific recent
+              (within the last month) commit on a git repository, or a public link to a screenshot
+              uploaded to a file-sharing service (e.g.&nbsp;ownCloud, SWITCHdrive, Google&nbsp;Drive, etc.).
+            </li>
+            <li>
+              <strong>A short description</strong> (minimum 3 words, maximum 1000 words) of what
+              you did to complete the task.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Get Bingo:</strong> Complete an entire row, column, or diagonal to score a Bingo!
+          When the app detects a Bingo, you'll be prompted to submit your win.
+        </li>
+        <li>
+          <strong>Winners page:</strong> All winners are displayed publicly. Hovering over completed
+          squares on the winners board shows the description of what was done.
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h2>Resource Board</h2>
+      <p>
+        Not sure how to tackle a task? Click any square below to open a helpful resource that
+        explains how to do it:
+      </p>
+      <div class="help-board" id="helpBoard"></div>
+    </div>
+
+    <div class="buttons" style="margin-top:24px">
+      <a href="/" class="btn">Home</a>
+      <a href="/new.html" class="btn primary">Start Playing</a>
+    </div>
+  </main>
+
+  <script>
+    // Board tasks in display order (positions 0-24)
+    // Board order by task number: 9,22,24,2,13,17,25,21,16,15,4,3,1,5,6,23,14,12,7,19,11,8,18,20,10
+    const boardData = [
+      { phrase: "Publish your data online",                       url: "https://www.lib4ri.ch/publishing-data" },
+      { phrase: "Create a requirements file",                     url: "https://pip.pypa.io/en/stable/reference/requirements-file-format/" },
+      { phrase: "Use a virtual or containerized environment",     url: "https://indico.cern.ch/event/1386725/contributions/5854498/attachments/2863224/5009996/2024-05-15%20-%20Containers%20And%20Environments.pdf" },
+      { phrase: "Store your data in an open format",              url: "https://www.bfs.admin.ch/bfs/en/home/dienstleistungen/ogd/dokumentation/empfohlenen-formate.html" },
+      { phrase: "Organize your repo in a logical structure",      url: "https://medium.com/code-factory-berlin/github-repository-structure-best-practices-248e6effc405" },
+      { phrase: "Post your repo/code to social media",            url: "https://www.essex.ac.uk/blog/posts/2023/12/08/sharing-your-research-using-social-media" },
+      { phrase: "Create and customize a .gitignore file",         url: "https://git-scm.com/docs/gitignore" },
+      { phrase: "Publish a reproducible report/visualization",    url: "https://www.lib4ri.ch/increasing-impact" },
+      { phrase: "Refactor a function to be more reusable",        url: "https://dev.to/pancy/how-i-refactor-my-code-47cc" },
+      { phrase: "Document your environment",                      url: "https://par.nsf.gov/servlets/purl/10166778" },
+      { phrase: "Separate rawdata from processed data",           url: "https://www.lib4ri.ch/cloud-data-storage" },
+      { phrase: "Give your files understandable names",           url: "https://ubc-library-rc.github.io/rdm/content/01_file_naming.html" },
+      { phrase: "Add a README",                                   url: "https://www.makeareadme.com/" },
+      { phrase: "Create a metadata file",                         url: "https://schema.datacite.org/meta/kernel-4.7/" },
+      { phrase: "Organize files in logical folder structure",     url: "https://libguides.graduateinstitute.ch/rdm/folders" },
+      { phrase: "Collaborate on a code repository",               url: "https://vickysteeves.gitlab.io/collaborating-with-git/collaborating-with-git.html" },
+      { phrase: "Setup a git repository and make a first commit", url: "https://docs.gitlab.com/user/project/repository/#create-a-repository" },
+      { phrase: "Link data to publication",                       url: "https://www.lib4ri.ch/publishing-data" },
+      { phrase: "Use a field-specific standard/resource",         url: "https://www.isotc211.org/" },
+      { phrase: "Publish data/code to supported infrastructure",  url: "https://www.lib4ri.ch/publishing-code" },
+      { phrase: "Use meaningful variable naming",                 url: "https://libguides.uvt.nl/rdmstudent/variables" },
+      { phrase: "Add a license",                                  url: "https://creativecommons.org/share-your-work/cclicenses/" },
+      { phrase: "Write a unit test for your code",                url: "https://raygun.com/blog/unit-tests-great-peace-mind/" },
+      { phrase: "Adapt an existing project/code using a fork",    url: "https://docs.gitlab.com/user/project/repository/forking_workflow/" },
+      { phrase: "(re)Comment your code",                          url: "https://stackoverflow.blog/2021/12/23/best-practices-for-writing-code-comments/" }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const board = document.getElementById('helpBoard');
+      boardData.forEach(item => {
+        const cell = document.createElement('div');
+        cell.className = 'help-cell';
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = item.phrase;
+        a.title = 'Click for a helpful resource on: ' + item.phrase;
+        cell.appendChild(a);
+        board.appendChild(cell);
+      });
+    });
+  </script>
+</body>
+</html>
