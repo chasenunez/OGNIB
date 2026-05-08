@@ -136,6 +136,8 @@ Pattern A is preferred because the cookie ends up scoped to `/bingo` (not the wh
 
 All URLs in HTML/JS must remain **relative** (no leading `/`). A leading slash would break subpath hosting. See the comment at the top of `public/js/common.js`.
 
+See `server_deployment_motes.md` for more guidance. 
+
 # Privacy & data protection
 
 The app is published with a **Privacy Notice** at `public/privacy.html`, with translations at `public/privacy.de.html` and `public/privacy.fr.html`. Every page links to it via the auto-injected footer in `public/js/common.js`, and the registration form (`public/new.html`) links to it from a required acknowledgement checkbox.
