@@ -66,6 +66,17 @@ h1{margin:0 0 12px;font-size:1.6rem}
   text-align: center;
 }
 
+/* Pink variant used for the "Rules and Resources" CTA on the home page */
+.btn.rules{
+  background:#ec53a0;
+  color:#fff;
+  border:none;
+  text-align:center;
+}
+.btn.rules:hover{
+  background:#d8408d;
+}
+
 .row{display:flex;gap:8px;align-items:center}
 .form label{display:block;margin-bottom:12px}
 .form input{width:100%;padding:8px;border-radius:6px;border:1px solid #cbd5e1}
@@ -186,6 +197,35 @@ h1{margin:0 0 12px;font-size:1.6rem}
 
 @media (max-width:600px){
   .small-board{width:140px}
+}
+
+/* Home-page "How it works" block */
+.intro {
+  max-width: 700px;
+  margin: 24px auto 28px;
+  padding: 0 8px;
+}
+.intro h2 {
+  color: var(--accent);
+  border-bottom: 2px solid var(--muted);
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  font-size: 1.15rem;
+}
+.intro ol {
+  padding-left: 22px;
+  line-height: 1.55;
+}
+.intro ol li {
+  margin-bottom: 6px;
+}
+.intro .intro-more {
+  margin-top: 14px;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+.intro .intro-more a {
+  color: var(--accent);
 }
 
 /* Help page styles */

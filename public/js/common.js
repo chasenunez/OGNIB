@@ -24,6 +24,7 @@ function showMsg(el, text, isError = false) {
 }
 
 function validateUrl(url) {
+  if (!url || /\s/.test(url)) return false; // no whitespace (e.g. two URLs pasted with a space)
   try {
     const u = new URL(url);
     return ['http:', 'https:'].includes(u.protocol);

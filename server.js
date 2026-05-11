@@ -245,7 +245,13 @@ router.post('/api/signout', (req, res) => {
 // Get current user's board
 router.get('/api/board', requireAuth, (req, res) => {
   // return 5x5 board as array of 25 {phrase, url, description}
-  res.json({ board: req.user.board, name: req.user.name, email: req.user.email });
+  res.json({
+    board: req.user.board,
+    name: req.user.name,
+    email: req.user.email,
+    displayName: req.user.displayName || req.user.name,
+    isAnonymous: !!req.user.isAnonymous
+  });
 });
 
 // Update a single cell (index 0..24)
@@ -255,6 +261,12 @@ router.post('/api/board/update', requireAuth, (req, res) => {
 
   // allow url = null to clear
   if (url !== null && url !== undefined) {
+    // Reject any whitespace in the URL. The most common failure mode is a
+    // user pasting two URLs separated by a space, which produces a single
+    // unreachable string. Catch that explicitly with a clear message.
+    if (typeof url !== 'string' || /\s/.test(url)) {
+      return res.status(400).json({ error: 'Please submit only one URL, with no spaces' });
+    }
     // basic validation (server-side): must be http(s)
     try {
       const u = new URL(url);
@@ -285,6 +297,18 @@ router.post('/api/board/update', requireAuth, (req, res) => {
   }
 
   store.updateUser(req.user);
+
+  // If this update breaks an existing bingo, drop the user from the public
+  // Winners page and clear their wonAt timestamp. They become re-eligible
+  // immediately: completing a new bingo will re-trigger the modal and let
+  // them re-submit. Without this, a user could complete a bingo, get added
+  // to the Winners page, then strip a square and stay listed regardless.
+  const stillHasBingo = hasBingo(req.user.board.map(c => !!c.url));
+  if (!stillHasBingo && store.hasWinnerEntry(req.user.id)) {
+    store.removeWinnerByUserId(req.user.id);
+    store.clearUserWonAt(req.user.id);
+  }
+
   store.save();
   res.json({ ok: true, board: req.user.board });
 });

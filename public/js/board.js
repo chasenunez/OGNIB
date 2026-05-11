@@ -3,7 +3,9 @@
 
 let state = {
   board: [],    // array of 25 {phrase, url, description}
-  name: ''
+  name: '',
+  displayName: '',
+  isAnonymous: false
 };
 
 document.addEventListener('DOMContentLoaded', init);
@@ -19,7 +21,13 @@ async function fetchBoard() {
     const data = await api('api/board');
     state.board = data.board;
     state.name = data.name;
-    document.getElementById('welcome').textContent = `Signed in as ${state.name}`;
+    state.displayName = data.displayName || data.name;
+    state.isAnonymous = !!data.isAnonymous;
+    // If the user signed up anonymously, show their anonymous nickname rather
+    // than their real name in the page header — so the corner of the screen
+    // reflects what others would see on the Winners page.
+    const shown = state.isAnonymous ? state.displayName : state.name;
+    document.getElementById('welcome').textContent = `Signed in as ${shown}`;
     renderBoard();
   } catch (err) {
     // redirect to sign in if not authenticated
@@ -66,6 +74,10 @@ function setupModals() {
     const desc = descInput.value.trim();
     if (val.length === 0) {
       showUrlError('Please enter a URL or click Clear to remove.');
+      return;
+    }
+    if (/\s/.test(val)) {
+      showUrlError('Please submit only one URL, with no spaces.');
       return;
     }
     if (!validateUrl(val)) {
