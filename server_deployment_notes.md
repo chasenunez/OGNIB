@@ -131,6 +131,23 @@ The app will be available at `https://yoursite.com/bingo`.
 
 ---
 
+## 7. Update the app
+
+```bash
+sudo systemctl stop bingo
+
+sudo -u bingo -H bash
+cd ~
+git clone <your-repo>
+cd BINGO
+npm install --omit=dev
+exit
+
+sudo systemctl start bingo
+```
+
+---
+
 ## Useful commands
 
 | Task | Command |
