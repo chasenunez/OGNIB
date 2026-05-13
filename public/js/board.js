@@ -5,7 +5,16 @@ let state = {
   board: [],    // array of 25 {phrase, url, description}
   name: '',
   displayName: '',
-  isAnonymous: false
+  isAnonymous: false,
+  // True when the most recent render found a bingo. Used to detect the
+  // "no bingo -> bingo" transition that triggers the auto-submit + fireworks
+  // flow. Without this we'd re-fire on every render while the user is in a
+  // bingo state, which would be obnoxious if they dismiss the modal and keep
+  // editing.
+  lastSeenBingo: false,
+  // Guard so a rapid double-render doesn't fire two parallel /api/bingo
+  // submissions.
+  submitInFlight: false
 };
 
 document.addEventListener('DOMContentLoaded', init);
@@ -107,26 +116,11 @@ function setupModals() {
   });
   document.getElementById('urlCancel').addEventListener('click', closeUrlModal);
 
-  // bingo modal
-  const bingoModal = document.getElementById('bingoModal');
-  document.getElementById('bingoSubmit').addEventListener('click', async () => {
-    try {
-      await api('api/bingo', { method: 'POST', body: JSON.stringify({}) });
-      // Generate and show the badge instead of redirecting immediately
-      document.getElementById('bingoSubmit').disabled = true;
-      document.getElementById('bingoSubmit').textContent = 'Submitted!';
-      await generateBadge();
-    } catch (err) {
-      alert('Failed to submit bingo: ' + (err.message || ''));
-    }
-  });
-  document.getElementById('bingoCancel').addEventListener('click', () => {
-    closeBingoModal();
-    // If already submitted, go to winners page
-    if (document.getElementById('bingoSubmit').disabled) {
-      window.location = 'winners.html';
-    }
-  });
+  // bingo modal: submission happens automatically on bingo detection (see
+  // checkBingoAndShow). The user only sees two buttons here:
+  //   - "See Winners" is a plain link (handled by HTML target="_blank")
+  //   - "Keep Playing" dismisses the modal
+  document.getElementById('bingoCancel').addEventListener('click', closeBingoModal);
 }
 
 function openUrlModal(index) {
@@ -172,13 +166,45 @@ async function saveCellUrl(index, urlOrNull, descOrNull) {
 
 function checkBingoAndShow() {
   const modal = document.getElementById('bingoModal');
-  const wasHidden = modal.classList.contains('hidden');
-  if (hasBingo(state.board.map(c => !!c.url))) {
-    modal.classList.remove('hidden');
-    // Fire confetti only on transition from hidden -> visible
-    if (wasHidden) fireConfetti();
+  const currentBingo = hasBingo(state.board.map(c => !!c.url));
+
+  if (currentBingo) {
+    // Only act on the no-bingo -> bingo transition. If the user dismissed the
+    // modal but is still in a bingo state, do not re-pop it.
+    if (!state.lastSeenBingo) {
+      state.lastSeenBingo = true;
+      // Reset the badge area so the user sees it being generated fresh
+      const badgeArea = document.getElementById('badgeArea');
+      badgeArea.classList.add('hidden');
+      // Show modal + fireworks immediately for snappy feedback
+      modal.classList.remove('hidden');
+      fireConfetti();
+      // Auto-submit to the Winners page and generate the badge in the
+      // background. The /api/bingo endpoint is idempotent (it replaces any
+      // existing winner entry for this user), so repeating it on a later
+      // bingo cycle is safe.
+      autoSubmitBingo();
+    }
   } else {
+    // No bingo: hide the modal and reset the transition flag so the next
+    // completion fires the flow again.
+    state.lastSeenBingo = false;
     modal.classList.add('hidden');
+  }
+}
+
+async function autoSubmitBingo() {
+  if (state.submitInFlight) return;
+  state.submitInFlight = true;
+  try {
+    await api('api/bingo', { method: 'POST', body: JSON.stringify({}) });
+    await generateBadge();
+  } catch (err) {
+    // Modal is already showing — log to console rather than alerting, which
+    // would interrupt the celebration.
+    console.error('Auto-submit of bingo failed:', err && err.message);
+  } finally {
+    state.submitInFlight = false;
   }
 }
 

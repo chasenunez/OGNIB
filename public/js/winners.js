@@ -16,7 +16,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       left.style.flex = '1';
       // Use displayName (anonymous or real); fall back to name for legacy entries
       const shown = w.displayName || w.name || 'Anonymous';
-      left.innerHTML = `<strong>${escapeHtml(shown)}</strong><div class="muted">on ${new Date(w.createdAt).toLocaleString()}</div>`;
+
+      const nameStrong = document.createElement('strong');
+      nameStrong.textContent = shown;
+      left.appendChild(nameStrong);
+
+      // Institute badge — present only for non-anonymous winners. The store
+      // deliberately omits `institute` for anonymous accounts so that the
+      // public page doesn't publish a derived attribute of their email.
+      if (w.institute && !w.anonymous) {
+        const inst = document.createElement('span');
+        inst.className = 'institute';
+        inst.textContent = ` (${w.institute.label})`;
+        if (w.institute.color) inst.style.color = w.institute.color;
+        left.appendChild(inst);
+      }
+
+      const dateDiv = document.createElement('div');
+      dateDiv.className = 'muted';
+      dateDiv.textContent = 'on ' + new Date(w.createdAt).toLocaleString();
+      left.appendChild(dateDiv);
 
       const small = document.createElement('div');
       small.className = 'small-board';
