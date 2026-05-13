@@ -6,12 +6,13 @@ let state = {
   name: '',
   displayName: '',
   isAnonymous: false,
-  // True when the most recent render found a bingo. Used to detect the
-  // "no bingo -> bingo" transition that triggers the auto-submit + fireworks
-  // flow. Without this we'd re-fire on every render while the user is in a
-  // bingo state, which would be obnoxious if they dismiss the modal and keep
-  // editing.
-  lastSeenBingo: false,
+  // The bingo-line count observed at the previous render. The modal +
+  // fireworks fire whenever the *current* count exceeds this — so a fresh
+  // bingo (0->1), an extra bingo on an existing winner (1->2, 2->3, etc.),
+  // and re-gaining a line after a partial break (2->1->2) all trigger.
+  // Benign edits that don't add a line (e.g. fixing a description, or
+  // breaking a line down) do not retrigger.
+  lastSeenBingoCount: 0,
   // Guard so a rapid double-render doesn't fire two parallel /api/bingo
   // submissions.
   submitInFlight: false
@@ -166,29 +167,30 @@ async function saveCellUrl(index, urlOrNull, descOrNull) {
 
 function checkBingoAndShow() {
   const modal = document.getElementById('bingoModal');
-  const currentBingo = hasBingo(state.board.map(c => !!c.url));
+  const currentCount = countBingos(state.board.map(c => !!c.url));
 
-  if (currentBingo) {
-    // Only act on the no-bingo -> bingo transition. If the user dismissed the
-    // modal but is still in a bingo state, do not re-pop it.
-    if (!state.lastSeenBingo) {
-      state.lastSeenBingo = true;
-      // Reset the badge area so the user sees it being generated fresh
-      const badgeArea = document.getElementById('badgeArea');
-      badgeArea.classList.add('hidden');
-      // Show modal + fireworks immediately for snappy feedback
+  if (currentCount > 0) {
+    // Fire whenever the user has GAINED a bingo line since the last render:
+    // the initial completion, an extra line on an existing winner, or a
+    // re-completion after a break. We compare against lastSeenBingoCount
+    // (not just truthiness) so 1->2, 2->3 etc. each retrigger the modal.
+    if (currentCount > state.lastSeenBingoCount) {
+      // Don't pre-hide the badge area: if a previous badge is already
+      // visible, leaving it in place gives a smoother handover when the
+      // newly-generated badge overwrites the canvas in place.
       modal.classList.remove('hidden');
       fireConfetti();
-      // Auto-submit to the Winners page and generate the badge in the
-      // background. The /api/bingo endpoint is idempotent (it replaces any
-      // existing winner entry for this user), so repeating it on a later
-      // bingo cycle is safe.
+      // Auto-submit to the Winners page and regenerate the badge. The
+      // /api/bingo endpoint is idempotent (it replaces any existing winner
+      // entry for this user), so repeating it on each new bingo cycle just
+      // refreshes the snapshot and badge with the higher count.
       autoSubmitBingo();
     }
+    state.lastSeenBingoCount = currentCount;
   } else {
-    // No bingo: hide the modal and reset the transition flag so the next
-    // completion fires the flow again.
-    state.lastSeenBingo = false;
+    // No bingo: hide the modal and reset the counter so the next completion
+    // fires the flow again from scratch.
+    state.lastSeenBingoCount = 0;
     modal.classList.add('hidden');
   }
 }
@@ -236,30 +238,30 @@ function closeBingoModal() {
   document.getElementById('bingoModal').classList.add('hidden');
 }
 
-// bingo checking: board is 25 booleans: true if filled
-function hasBingo(bools) {
-  if (!Array.isArray(bools) || bools.length !== 25) return false;
-  // rows
+// Count how many of the 12 possible bingo lines (5 rows + 5 columns +
+// 2 diagonals) are completed on a 25-cell board. Mirrors the server-side
+// implementation in lib/store.js — kept here so the UI can react to each
+// new line without waiting for a round-trip.
+function countBingos(bools) {
+  if (!Array.isArray(bools) || bools.length !== 25) return 0;
+  let count = 0;
   for (let r = 0; r < 5; r++) {
     let ok = true;
     for (let c = 0; c < 5; c++) if (!bools[r * 5 + c]) { ok = false; break; }
-    if (ok) return true;
+    if (ok) count++;
   }
-  // columns
   for (let c = 0; c < 5; c++) {
     let ok = true;
     for (let r = 0; r < 5; r++) if (!bools[r * 5 + c]) { ok = false; break; }
-    if (ok) return true;
+    if (ok) count++;
   }
-  // diagonal top-left to bottom-right: indices 0, 6, 12, 18, 24
-  let ok = true;
-  for (let i = 0; i < 5; i++) if (!bools[i * 6]) { ok = false; break; }
-  if (ok) return true;
-  // diagonal top-right to bottom-left: indices 4, 8, 12, 16, 20
-  ok = true;
-  for (let i = 1; i <= 5; i++) if (!bools[i * 4]) { ok = false; break; }
-  if (ok) return true;
-  return false;
+  let ok1 = true;
+  for (let i = 0; i < 5; i++) if (!bools[i * 6]) { ok1 = false; break; }
+  if (ok1) count++;
+  let ok2 = true;
+  for (let i = 1; i <= 5; i++) if (!bools[i * 4]) { ok2 = false; break; }
+  if (ok2) count++;
+  return count;
 }
 
 async function signout() {

@@ -15,6 +15,7 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 
 const Store = require('./lib/store');
+const { countBingos } = Store;
 
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -298,15 +299,25 @@ router.post('/api/board/update', requireAuth, (req, res) => {
 
   store.updateUser(req.user);
 
-  // If this update breaks an existing bingo, drop the user from the public
-  // Winners page and clear their wonAt timestamp. They become re-eligible
-  // immediately: completing a new bingo will re-trigger the modal and let
-  // them re-submit. Without this, a user could complete a bingo, get added
-  // to the Winners page, then strip a square and stay listed regardless.
+  // Maintain the Winners page in lockstep with the user's CURRENT board:
+  //
+  //   - If they no longer have any bingo line, drop them from the Winners
+  //     page and clear wonAt. They become re-eligible immediately — a new
+  //     bingo will re-fire the auto-submit on the client.
+  //
+  //   - If they still have at least one bingo and they are already a winner,
+  //     refresh their snapshot so the Winners page shows their CURRENT board
+  //     and current bingo count (e.g. 1x -> 2x -> SUPER BINGO).
+  //
+  // Without the second branch, extending a 1-bingo board into a 2-bingo
+  // board would not update the count displayed publicly, because the
+  // client-side auto-submit only fires on the no-bingo -> bingo transition.
   const stillHasBingo = hasBingo(req.user.board.map(c => !!c.url));
   if (!stillHasBingo && store.hasWinnerEntry(req.user.id)) {
     store.removeWinnerByUserId(req.user.id);
     store.clearUserWonAt(req.user.id);
+  } else if (stillHasBingo && store.hasWinnerEntry(req.user.id)) {
+    store.updateWinnerSnapshot(req.user.id, req.user.board);
   }
 
   store.save();
@@ -338,30 +349,9 @@ router.post('/api/bingo', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// Server-side bingo checking: board is 25 booleans
+// Server-side bingo check (thin wrapper over countBingos for readability).
 function hasBingo(bools) {
-  if (!Array.isArray(bools) || bools.length !== 25) return false;
-  // rows
-  for (let r = 0; r < 5; r++) {
-    let ok = true;
-    for (let c = 0; c < 5; c++) if (!bools[r * 5 + c]) { ok = false; break; }
-    if (ok) return true;
-  }
-  // columns
-  for (let c = 0; c < 5; c++) {
-    let ok = true;
-    for (let r = 0; r < 5; r++) if (!bools[r * 5 + c]) { ok = false; break; }
-    if (ok) return true;
-  }
-  // diagonal top-left to bottom-right: indices 0, 6, 12, 18, 24
-  let ok = true;
-  for (let i = 0; i < 5; i++) if (!bools[i * 6]) { ok = false; break; }
-  if (ok) return true;
-  // diagonal top-right to bottom-left: indices 4, 8, 12, 16, 20
-  ok = true;
-  for (let i = 1; i <= 5; i++) if (!bools[i * 4]) { ok = false; break; }
-  if (ok) return true;
-  return false;
+  return countBingos(bools) > 0;
 }
 
 // Get winners

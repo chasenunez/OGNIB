@@ -222,6 +222,23 @@ h1{margin:0 0 12px;font-size:1.6rem}
   margin-left: 4px;
 }
 
+/* "Nx Bingo!" badge shown under the date on the Winners page when a winner
+   has completed more than one line. */
+.bingo-count {
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* "SUPER BINGO!" badge — bold pink, only shown when all 25 squares are
+   filled. Same family as .bingo-count but visually distinct. */
+.super-bingo {
+  font-weight: bold;
+  color: #eb539f;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+
 /* Home-page "How it works" block */
 .intro {
   max-width: 700px;

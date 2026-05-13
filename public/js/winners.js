@@ -37,6 +37,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       dateDiv.textContent = 'on ' + new Date(w.createdAt).toLocaleString();
       left.appendChild(dateDiv);
 
+      // Bingo-count badge below the date. SUPER BINGO! is shown in bold pink
+      // when every square is filled; otherwise "Nx Bingo!" reflects the
+      // number of complete rows/columns/diagonals (1 through 12).
+      if (w.isSuperBingo) {
+        const sb = document.createElement('div');
+        sb.className = 'super-bingo';
+        sb.textContent = 'SUPER BINGO!';
+        left.appendChild(sb);
+      } else if (typeof w.bingoCount === 'number' && w.bingoCount > 0) {
+        const bc = document.createElement('div');
+        bc.className = 'bingo-count';
+        bc.textContent = `${w.bingoCount}x Bingo!`;
+        left.appendChild(bc);
+      }
+
       const small = document.createElement('div');
       small.className = 'small-board';
 
