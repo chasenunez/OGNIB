@@ -8,8 +8,10 @@ This MMO Bingo web application was created as an outreach and engagement tool fo
 
 This repository contains the full app (Node + Express backend + static frontend). All user data (accounts, boards, winners) are stored in a single AES-GCM–encrypted JSON file on the host. Passwords are hashed with `bcrypt`. This causes some minor hurdles for local setup (see below), but is generally appropriate for small-scale deployments (like workshops, departmental demos, or research-group use), but larger deployment will require some rethininking to scale the log-in credential storage. 
 
-* Each completed bingo entry can be linked to live evidence (a DOI, repository record, README file, pull request, or project page). That way the wins can be audited by whoever needs to do that, and also serves as a cool way for folks to share their accomplishments. 
-* Winners are recorded (one winner entry per account) and presented with a thumbnail of their board so evidence is discoverable. Also the links for the completed squares remain usable. 
+* Each completed square is linked to live evidence (a DOI, repository record, README file, pull request, or project page) so wins can be audited and folks can share their accomplishments.
+* Bingos are submitted automatically — completing any row, column, or diagonal triggers a celebratory pop-up (fireworks + a downloadable winner badge) and adds the user to the public Winners page. There is no "Submit" step.
+* Multiple bingos per board are tracked: completing additional lines updates the user's public entry to "2x Bingo!", "3x Bingo!", etc. A fully completed 25-square board earns a "SUPER BINGO!" badge. If a user later edits a square in a way that breaks all their bingo lines, they're automatically removed from the Winners page until they complete a new one.
+* Winners are presented with a thumbnail of their board so evidence is discoverable; the links for the completed squares remain clickable (except for anonymous winners, whose evidence URLs and descriptions are withheld).
 * Minimal infrastructure and clear encryption: the data file is encrypted at rest using a server-side `SECRET_KEY`. This makes the app safe enough for outreach use without a full database stack.
 * It is coded up so that changes to the phrases, board size, UI styling, etc. is prety easy to change.
 
