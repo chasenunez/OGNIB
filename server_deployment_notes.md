@@ -24,7 +24,7 @@ sudo useradd --system --create-home bingo
 ```bash
 sudo -u bingo -H bash
 cd ~
-git clone <your-repo>
+git clone https://github.com/chasenunez/BINGO.git
 cd BINGO
 npm install --omit=dev
 exit
@@ -112,7 +112,7 @@ sudo a2enmod proxy proxy_http headers
 sudo systemctl restart apache2
 ```
 
-Add the following to your existing VirtualHost configuration, after any Drupal rewrite rules:
+Add the following to **both** your port 80 and port 443 VirtualHost configurations, after any Drupal rewrite rules:
 
 ```apache
 ProxyPass /bingo http://localhost:3000/bingo
@@ -137,9 +137,8 @@ The app will be available at `https://yoursite.com/bingo`.
 sudo systemctl stop bingo
 
 sudo -u bingo -H bash
-cd ~
-git clone <your-repo>
-cd BINGO
+cd ~/BINGO
+git pull
 npm install --omit=dev
 exit
 
